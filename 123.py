@@ -26,7 +26,7 @@ class Example(QMainWindow):
             x = randint(50, 550)
             y = randint(50, 250)
             w = randint(10, 100)
-            painter.setBrush(QColor(randint(0, 255), 255, 0))
+            painter.setBrush(QColor(randint(0, 255), randint(0, 255), randint(0, 255)))
             painter.drawEllipse(x, y, w, w)
         # создаем экземпляр QPainter, передавая холст (self.label.pixmap())
         painter = QPainter(self.label.pixmap())
