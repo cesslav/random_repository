@@ -1,50 +1,48 @@
-from random import randint
-
-import sys
-from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen
 from PyQt5 import uic
-
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QFileDialog
+import sys
+from PyQt5.QtCore import QRect
+from PyQt5.QtWidgets import QApplication, QTableWidget, QTableWidgetItem, QMainWindow
+import sqlite3
 
 
 class Example(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('UI.ui', self)  # Загружаем дизайн
-        canvas = QPixmap(600, 300)
-        # painter = QPainter(self.label.pixmap())
-        # painter.setBrush(QColor(255, 255, 255))
-        # painter.drawRect(-1, -1, 601, 601)
-        # painter.end()
-        # self.update()
+        uic.loadUi('main.ui', self)
 
-        self.label.setPixmap(canvas)
-        self.pushButton.clicked.connect(self.run)
+        self.search_product_list = QTableWidget(self.centralwidget)
+        self.search_product_list.setObjectName(u"search_product_list")
+        self.search_product_list.setGeometry(QRect(30, 40, 720, 271))
 
-    def run(self):
-        def draw():
-            x = randint(50, 550)
-            y = randint(50, 250)
-            w = randint(10, 100)
-            painter.setBrush(QColor(randint(0, 255), randint(0, 255), randint(0, 255)))
-            painter.drawEllipse(x, y, w, w)
-        # создаем экземпляр QPainter, передавая холст (self.label.pixmap())
-        painter = QPainter(self.label.pixmap())
-        # pen = QPen()
-        # pen.setWidth(3)
-        painter.setBrush(QColor(255, 255, 255))
-        painter.drawRect(-1, -1, 601, 601)
+        self.connection = sqlite3.connect("coffee.db")
+        self.cursor = self.connection.cursor()
 
-        # pen.setColor(QColor(*[randint(0, 255) for i in range(3)]))
-        # painter.setPen(pen)
-        for i in range(randint(3, 5000)):
-            draw()
-        painter.end()
-        self.update()
+        self.load_data()
+
+    def load_data(self):
+        query = f'SELECT * FROM sorts'
+        self.cursor.execute(query)
+        data = self.cursor.fetchall()
+
+        num_rows = len(data)
+        num_columns = len(data[0]) if num_rows > 0 else 0
+
+        self.search_product_list.setRowCount(num_rows)
+        self.search_product_list.setColumnCount(num_columns)
+
+        for row in range(num_rows):
+            for col in range(0, num_columns):
+                item = QTableWidgetItem(str(data[row][col]))
+                self.search_product_list.setItem(row, col, item)
+
+        column_headers = [description[0] for description in self.cursor.description]
+        self.search_product_list.setHorizontalHeaderLabels(column_headers)
+
+    def closeEvent(self, event):
+        self.connection.close()
 
 
 def except_hook(cls, exception, traceback):
-    # отлавливаем ошибки если они будут чтобы пользователь не видел их
     sys.__excepthook__(cls, exception, traceback)
 
 
